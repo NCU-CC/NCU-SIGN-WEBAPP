@@ -1,0 +1,11 @@
+{
+  "name": "NCU-SIGN-WEBAPP",
+  "short_name": "NCU-SIGN",
+  "start_url": "index.html",
+  "display": "standalone",
+  "icons": [{
+    "src": "ic_launcher.png",
+    "sizes": "512x512",
+    "type": "image/png"
+  }]
+}

@@ -1,0 +1,46 @@
+<ion-header-bar class="bar-dark">
+	<div class="h1 title">{{title}}</div>
+</ion-header-bar>
+		
+
+<div style="background-color:white">
+	<ion-content>
+							
+	<div class="list">
+		<label class="item item-input item-stacked-label">
+            <span class="input-label">活動名稱</span>
+            <input type="text" disabled ng-model="evnt.name">
+		</label>
+        <label class="item item-input item-stacked-label">
+			<span class="input-label">開始日期、時間</span>
+			<input type="text" disabled ng-model="dateStarted">
+		</label>
+		<label class="item item-input item-stacked-label">
+			<span class="input-label">結束日期、時間</span>
+			<input type="text" disabled ng-model="dateEnded">
+		</label>
+		<label class="item item-input item-stacked-label">
+			<span class="input-label">活動編號</span>
+			<input type="text" value="{{evnt.id}}" disabled style="background:white;">
+		</label>
+        <label class="item item-input item-stacked-label">
+			<span class="input-label">簽到ID</span>
+			<input type="text" value="{{userID}}" disabled style="background:white;">
+		</label>
+        <label class="item item-input item-stacked-label">
+			<span class="input-label">簽到時間</span>
+			<input type="text" value="{{createDate}}" disabled style="background:white;">
+		</label>
+	</div>
+							
+    <div class="button-bar">
+		<a class="button" style='margin: 5px;' nav-transition="android" ng-click="openAPP()">繼續掃描</a>
+	</div>
+	<div class="button-bar">
+        <a class="button" style='margin: 5px;' ng-click="goToEvents()">回到活動列表</a>
+	</div>						
+							
+						
+						
+	</ion-content>
+</div>

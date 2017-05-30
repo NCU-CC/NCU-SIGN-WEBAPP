@@ -1,0 +1,9 @@
+.dark {
+  background-color: #d8d8d9;
+  
+}
+
+#interactive.viewport canvas.drawingBuffer, video.drawingBuffer {
+  position: absolute;
+  margin-left: -640px;
+}

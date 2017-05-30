@@ -1,0 +1,31 @@
+<ion-header-bar class="bar-dark">
+	<button class="button button-icon" ng-click="goBack()">
+		<i class="icon ion-android-arrow-back"></i>
+	</button>
+	<div class="h1 title">簽到內容</div>
+</ion-header-bar>-->
+
+
+<div style="background-color:white">
+	<ion-content>
+
+        <!-- our list and list items -->
+		<ion-list>
+			<ion-item ng-repeat="signData in signIns[eventID].content track by $index"
+                      ng-class="$index%2 == 1 ? 'dark' : ''">
+				<div class="row busInfoRow">
+					<div style="text-align:center">{{signData.userId}}</div>
+				</div>
+				<div class="row busInfoRow">
+					<div style="text-align:center">{{formatDate(signData.dateCreated)}}</div>
+				</div>
+			</ion-item>
+            <ion-item ng-show="showReminder()" style="text-align:center">暫無資料</ion-item>
+        </ion-list>
+        
+        <ion-infinite-scroll    icon="ion-loading-c"
+                                on-infinite="onInfinite()"
+                                distance="1%">
+									
+	</ion-content>
+</div>

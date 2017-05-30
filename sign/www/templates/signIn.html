@@ -1,0 +1,35 @@
+<ion-header-bar class="bar-dark">
+	<div class="h1 title">{{evnt.name}} 簽到</div>
+</ion-header-bar>
+			
+<div style="background-color:gray;">
+	<ion-content>
+	
+		<!--<video id="video" width="640" height="480" autoplay></video>
+		<canvas id="canvas" width="640" height="480" style='background-color: black; margin: 0 auto;'></canvas>
+		-->					
+        <div id="interactive" class="viewport" style="margin: 0 auto; width:640px"></div>
+		<div class="row">
+			<div class="col col-20">簽到ID</div>
+			<div class="col col-80">{{userID}}</div>
+		</div>
+		<div class="row">
+			<div class="col col-20">簽到時間</div>
+			<div class="col col-80">{{createDate}}</div>
+		</div>
+		
+        <div class="button-bar">
+            <a class="button" style='margin: 5px;' ng-click="Sign()">簽到</a>
+		</div>
+    
+        <div class="button-bar">
+            <a class="button" style='margin: 5px;' ng-click="openAPPModal()">使用其他APP掃描</a>
+		</div>
+    
+		<div class="button-bar">
+            <a class="button" style='margin: 5px;' ng-click="goBack()">停止簽到</a>
+		</div>
+	
+        
+	</ion-content>
+</div>
