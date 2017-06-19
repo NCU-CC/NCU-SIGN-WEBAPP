@@ -48,10 +48,8 @@ angular.module('starter.services', [])
                 if(resp.data.pageMetadata.totalPages > self.events.pageMetadata.totalPages){
                     self.events.pageMetadata = resp.data.pageMetadata;
                 }
-                console.log('written');
             }else{
                 self.events.pageMetadata = resp.data.pageMetadata;
-                console.log('written');
             }
             if(resp.data.content.length>0){
                 for(i=0;i<resp.data.content.length;i++){
@@ -62,7 +60,6 @@ angular.module('starter.services', [])
             if(typeof(callback) === 'function'){
                 callback();
             }
-            console.log(resp.data); 
         }, function(err){
             console.error('ERR', err);
             if(typeof(ERRcallback) === 'function'){
@@ -72,18 +69,12 @@ angular.module('starter.services', [])
     }
     
     self.moreEventsToGet = function(){
-        console.log(Date.now() - self.lastCheck);
-        console.log(self.pageGot);
-        console.log(self.events.pageMetadata);
         if(self.events.pageMetadata === undefined){
-            console.log('critreia 1');
             return true;
         }
         if(self.pageGot < self.events.pageMetadata.totalPages || Date.now() - self.lastCheck > 60*1000){
-            console.log('critreia 2');
             return true;
         }
-        console.log('criteria not passed')
         return false;
     }
     
@@ -121,7 +112,6 @@ angular.module('starter.services', [])
             if(typeof(callback) === 'function'){
                 callback();
             }
-            console.log(resp.data); 
         }, function(err){
             console.error('ERR', err);
             if(typeof(ERRcallback) === 'function'){
@@ -143,8 +133,7 @@ angular.module('starter.services', [])
         $http(req).then(function(resp){
             if(typeof(callback) === 'function'){
                 callback(resp);
-            }
-            console.log(resp.data); 
+            } 
         }, function(err){
             if(typeof(ERRcallback) === 'function'){
                 ERRcallback(err);
@@ -156,7 +145,6 @@ angular.module('starter.services', [])
     
     self.addEvent = function(accessToken, evnt, callback, ERRcallback){
         dataStr = JSON.stringify(evnt)
-        console.log(dataStr);
         req = {
             method: 'POST',
             url: self.rootURL + 'activities',
@@ -166,10 +154,8 @@ angular.module('starter.services', [])
             },
             data: JSON.stringify(evnt)
         }     
-        console.log(req.data)
         
         $http(req).then(function(resp){
-            console.log(resp.data); 
             self.events = {"content":[], "pageMetadata":{} };
             self.pageGot = 0;
             self.getEvents(accessToken, callback);
@@ -193,10 +179,8 @@ angular.module('starter.services', [])
             data: JSON.stringify(evnt)
         }     
         req.url = self.rootURL + 'activities/' + evnt.id;
-        console.log(req.data)
         
         $http(req).then(function(resp){
-            console.log(resp.data); 
             self.events = {"content":[], "pageMetadata":{} };
             self.pageGot = 0;
             self.getEvents(accessToken, callback);
@@ -221,7 +205,6 @@ angular.module('starter.services', [])
         for(i=0;i<eventIDs.length-1;i++){
             req.url = self.rootURL + 'activities/' + eventIDs[i];
             $http(req).then(function(resp){
-                console.log(eventIDs[i] + 'deleted')
             }, function(err){
                 console.error('ERR', err);
             });
@@ -243,12 +226,10 @@ angular.module('starter.services', [])
     
     self.moreSignInsToGet = function(eventID){
         if(self.signIns[eventID] === undefined){
-            console.log('c1');
             return true;
         }
         if(self.signIns[eventID].pageGot < self.signIns[eventID].pageMetadata.totalPages 
         || Date.now() - self.signIns[eventID].lastCheck > 60*1000){
-            console.log('c2');
             return true;
         }
         return false;
@@ -296,7 +277,6 @@ angular.module('starter.services', [])
                 }
             }
             self.signIns[eventID].lastCheck = Date.now();
-            console.log(resp.data);
             callback();
         }, function(err){
             console.error('ERR', err);
@@ -308,7 +288,6 @@ angular.module('starter.services', [])
     
     self.addSignIn = function(accessToken, eventID, userID, callback, ERRcallbac){
         dataStr = JSON.stringify( {'userId':userID} );
-        console.log(dataStr);
         req = {
             method: 'POST',
             url: self.rootURL + 'activities/' + eventID + '/sign_in',
@@ -318,10 +297,8 @@ angular.module('starter.services', [])
             },
             data: dataStr
         }     
-        console.log(req.data)
         
         $http(req).then(function(resp){
-            console.log(resp.data); 
             self.signIns[eventID] = undefined;
             callback(resp)
         }, function(err){

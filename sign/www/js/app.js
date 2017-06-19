@@ -43,14 +43,6 @@ angular.module('starter', ['ionic', 'starter.controllers', 'starter.services'])
 	}
 	$stateProvider.state(eventState);
 	
-	var signState = {
-		name: 'signIn',
-		url: '/signIn/:eventID',
-		templateUrl: 'templates/signIn.html',
-		controller: 'signInCtrl'
-	}
-	$stateProvider.state(signState);
-	
     var appSignState = {
 		name: 'appSignIn',
 		url: '/appSignIn/:eventID/:CODE',

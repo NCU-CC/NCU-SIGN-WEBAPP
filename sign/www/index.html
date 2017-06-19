@@ -84,7 +84,7 @@
 			<!-- Modal header bar -->
 			<ion-header-bar class="bar-dark">
 				<h1 class="title">簽到列表網址</h1>
-				<button class="button button-icon" ng-click="closeInfoModal()">
+				<button class="button button-icon" ng-click="closeSignRecordURL()">
 					<i class="icon ion-android-close"></i>
 				</button>
 			</ion-header-bar>
@@ -104,35 +104,7 @@
 		</div>
 	</script>
 	
-	<script id="openAPP.html" type="text/ng-template">
-		<div class="modal">
-			<!-- Modal header bar -->
-			<ion-header-bar class="bar-dark">
-				<h1 class="title">使用平台原生APP掃描</h1>
-				<button class="button button-icon" ng-click="closeAPPModal()">
-					<i class="icon ion-android-close"></i>
-				</button>
-			</ion-header-bar>
-
-			<!-- Modal content area -->
-			<ion-content>
-				<div class="card" style="box-shadow: none;">
-					<div class="item item-text-wrap">
-						使用平台原生APP可以精確、快速的掃描到條碼，是否安裝APP後使用APP掃描條碼?
-					</div>
-                </div>
-                    <button class="button button-light" ng-click="closeAPPModal()">
-                        否
-                    </button>
-                    <button class="button button-dark" ng-click="openAPP()">
-                        是
-                    </button>
-			</ion-content>
-            
-		</div>
-	</script>
-    
-    
+	
     <script id="menu-popover.html" type="text/ng-template">
         <ion-popover-view>
         <ion-content>

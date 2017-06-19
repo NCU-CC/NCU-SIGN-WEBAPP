@@ -5,7 +5,6 @@ angular.module('starter.controllers', [])
     
     // There's no item in list upon page load complete, thus triggering onInfinite()
     $scope.onInfinite = function(){
-        console.log(signAPI.moreEventsToGet());
         if(signAPI.moreEventsToGet()){
             $ionicLoading.show({
                 content: '正在取得活動列表',
@@ -27,7 +26,6 @@ angular.module('starter.controllers', [])
     }
     
     $scope.doRefresh = function(){
-        console.log('top refresh');
         signAPI.refreshEventList(window.localStorage['access_token'], 
                 function(){
                     // It is necessary to set length of events array to 0, 
@@ -170,7 +168,6 @@ angular.module('starter.controllers', [])
             alert('輸入時間格式不符')
             return
         }
-        console.log(evnt);
         $ionicLoading.show({
                 content: '正在創建活動',
                 animation: 'fade-in',
@@ -202,11 +199,27 @@ angular.module('starter.controllers', [])
         }
     }
     if (typeof $scope.evnt == 'undefined'){
-        window.location = settings.OAuthEndPoint;
+        $ionicLoading.show({
+                content: '正在取得活動資料',
+                animation: 'fade-in',
+                showBackdrop: true,
+                maxWidth: 200,
+                showDelay: 0
+            });
+        signAPI.getEvent(window.localStorage['access_token'], $stateParams.eventID, function(resp){
+            $scope.evnt = resp.data
+            $scope.dateStarted = signAPI.formatDate($scope.evnt.dateStarted);
+            $scope.dateEnded = signAPI.formatDate($scope.evnt.dateEnded);
+            $scope.signRecordURl = signAPI.rootURL + 'activities/' + $scope.evnt.id + '/sign_in?page=0'
+            $ionicLoading.hide();
+        }, function(err){
+            $ionicLoading.hide();
+        })
+    }else{
+        $scope.dateStarted = signAPI.formatDate($scope.evnt.dateStarted);
+        $scope.dateEnded = signAPI.formatDate($scope.evnt.dateEnded);
+        $scope.signRecordURl = signAPI.rootURL + 'activities/' + $scope.evnt.id + '/sign_in?page=0'
     }
-    $scope.dateStarted = signAPI.formatDate($scope.evnt.dateStarted);
-    $scope.dateEnded = signAPI.formatDate($scope.evnt.dateEnded);
-    $scope.signRecordURl = signAPI.rootURL + 'activities/' + $scope.evnt.id + '/sign_in?page=0',
     
     $scope.upDateEvent = function(name, dateStarted, dateEnded){
         evnt = {};
@@ -222,7 +235,6 @@ angular.module('starter.controllers', [])
             alert('輸入時間格式不符')
             return
         }
-        console.log(evnt);
         $ionicLoading.show({
                 content: '正在取得更新活動資訊',
                 animation: 'fade-in',
@@ -266,11 +278,12 @@ angular.module('starter.controllers', [])
         $state.go('check', {eventID: $scope.evnt.id});
     }
     
-    $scope.goSignIn = function(){
-        console.log($scope.evnt.id)
-        $state.go('signIn', {eventID: $scope.evnt.id});
-    }
-	
+    $scope.goSignIn = function() {
+        callBack = settings.redirectURI + "#/appSignIn/" + $scope.evnt.id + "/{CODE}"
+        callBack = encodeURIComponent(callBack);
+		window.location = "http://zxing.appspot.com/scan?ret=" + callBack;
+	};
+    
     // Sign Record URL Modal
 	$ionicModal.fromTemplateUrl('SignRecordURL.html', function(modal) {
 		$scope.SignRecordURLmodal = modal;
@@ -296,7 +309,6 @@ angular.module('starter.controllers', [])
     $scope.formatDate = signAPI.formatDate;
     
     $scope.onInfinite = function(){
-        console.log(signAPI.moreSignInsToGet($scope.eventID));
         if(signAPI.moreSignInsToGet($scope.eventID)){
         
             $ionicLoading.show({
@@ -336,182 +348,7 @@ angular.module('starter.controllers', [])
     	
 })
 
-.controller('signInCtrl', function($scope, $state, $ionicHistory, $ionicModal, $stateParams, $ionicLoading, signAPI, settings) {
-    /*TODO: refactor service.js signAPI service, store events using following structure:
-        self.events = {
-                        "eventID1":{
-                            "id": "eventID1",
-                            "name": "活動名稱",
-                            "dateStarted": 1466735533808,
-                            "dateEnded": 1466735533808,
-                            "dateCreated": 1466734716000,
-                            "creatorId": "102502005"
-                        },
-                        "eventID2":{
-                            ...
-                        }, 
-                        "eventID3":{
-                            ...
-                        } 
-                        "pageMetaData":{...}
-                    }
-    */    
-    $scope.evnt = undefined;
-    for(i=0;i<signAPI.events.content.length;i++){
-        if(signAPI.events.content[i].id === $stateParams.eventID){
-            $scope.evnt = signAPI.events.content[i];
-        }
-    }
-    if (typeof $scope.evnt == 'undefined'){
-        $ionicLoading.show({
-                content: '正在取得活動資料',
-                animation: 'fade-in',
-                showBackdrop: true,
-                maxWidth: 200,
-                showDelay: 0
-            });
-        signAPI.getEvent(window.localStorage['access_token'], $stateParams.eventID, function(resp){
-            $scope.event = resp.data
-            $ionicLoading.hide();
-        }, function(err){
-            $ionicLoading.hide();
-            // show error message
-        })
-    }
-    $scope.eventID = $stateParams.eventID;
-    $scope.userID = $stateParams.userID;
-    $scope.createDate = "";
-    
-    
-    var resultCollector = Quagga.ResultCollector.create({
-        capture: true,
-        capacity: 20,
-        //blacklist: [{code: "2167361334", format: "i2of5"}],
-        filter: function(codeResult) {
-            //console.log(codeResult);
-            // only store results which match this constraint
-            // e.g.: codeResult
-            return true;
-        }
-    });
-    
-    Quagga.init({
-        inputStream : {
-            name : "Live",
-            type : "LiveStream",
-            constraints:{
-                width: 800,
-                height: 600,
-                facingMode: "environment"
-            },            
-            target: document.querySelector('#video'),
-            //singleChannel: true
-        },
-        decoder : {
-            readers : [
-						"code_128_reader", 
-						"code_39_reader"
-						],
-			multiple: true
-        },
-        locator: {
-                patchSize: "medium",
-                halfSample: true
-        },
-        locate: true
-        }, function(err) {
-            if (err) {
-                console.log(err);
-                return
-            }
-            Quagga.registerResultCollector(resultCollector);
-            Quagga.start();
-    });
-    
-    /*Quagga.onProcessed(function(result) {
-        var drawingCtx = Quagga.canvas.ctx.overlay,
-            drawingCanvas = Quagga.canvas.dom.overlay;
-
-        if (result) {
-            if (result.boxes) {
-                drawingCtx.clearRect(0, 0, parseInt(drawingCanvas.getAttribute("width")), parseInt(drawingCanvas.getAttribute("height")));
-                result.boxes.filter(function (box) {
-                    return box !== result.box;
-                }).forEach(function (box) {
-                    Quagga.ImageDebug.drawPath(box, {x: 0, y: 1}, drawingCtx, {color: "green", lineWidth: 2});
-                });
-            }
-
-            if (result.box) {
-                Quagga.ImageDebug.drawPath(result.box, {x: 0, y: 1}, drawingCtx, {color: "#00F", lineWidth: 2});
-            }
-
-            if (result.codeResult && result.codeResult.code) {
-                Quagga.ImageDebug.drawPath(result.line, {x: 'x', y: 'y'}, drawingCtx, {color: 'red', lineWidth: 3});
-            }
-        }
-    });*/
-    
-    Quagga.onDetected(function(result) {
-        var code = result[0].codeResult.code;
-        $scope.userID = code.substring(0,code.length-1);
-        $scope.$apply();
-        console.log($scope.userID)
-    });
-    
-    $scope.Sign = function(){
-        if($scope.userID === "" || $scope.userID === undefined){
-            alert('簽到ID不可為空')
-            return;
-        }
-        $ionicLoading.show({
-                content: '正在簽到',
-                animation: 'fade-in',
-                showBackdrop: true,
-                maxWidth: 200,
-                showDelay: 0
-            });
-        console.log('Sign in ID: ' + $scope.userID)
-        signAPI.addSignIn(window.localStorage['access_token'], $stateParams.eventID,
-        $scope.userID, function(resp){
-            $scope.createDate = signAPI.formatDate(resp.data.dateCreated)
-            $ionicLoading.hide();
-            console.log($scope.createDate)
-        }, function(err){
-            $ionicLoading.hide();
-        });
-    };
-    
-    // Page transfers
-	$scope.goBack = function(){
-        Quagga.stop();
-		$state.go('event', {eventID: $scope.eventID});
-	};
-    
-    // APP Modal
-	$ionicModal.fromTemplateUrl('openAPP.html', function(modal) {
-		$scope.APPModal = modal;
-	}, {
-		scope: $scope,
-		animation: 'slide-in-up'
-	});
-	$scope.openAPPModal = function() {
-		$scope.APPModal.show();
-	};
-	$scope.closeAPPModal = function() {
-		$scope.APPModal.hide();
-	};
-    $scope.openAPP = function(eventID) {
-        callBack = settings.redirectURI + "#/appSignIn/" + $scope.eventID + "/{CODE}"
-        callBack = encodeURIComponent(callBack);
-		window.location = "http://zxing.appspot.com/scan?ret=" + callBack;
-        $scope.closeAPPModal();
-	};
-     
-})
-
 .controller('appSignInCtrl', function($scope, $state, $ionicHistory, $ionicModal, $stateParams, $ionicLoading, signAPI, settings) {
-    console.log($stateParams)
     $scope.title = "活動簽到"
     $scope.eventID = $stateParams.eventID;
     $scope.userID = $stateParams.CODE;
@@ -525,11 +362,9 @@ angular.module('starter.controllers', [])
                 maxWidth: 200,
                 showDelay: 0
             });
-        console.log('Sign in ID: ' + $scope.userID)
         signAPI.addSignIn(window.localStorage['access_token'], $stateParams.eventID,
         $scope.userID, function(resp){
             $scope.createDate = signAPI.formatDate(resp.data.dateCreated)
-            console.log($scope.createDate)
             $ionicLoading.hide();
             $scope.title = "已簽到"
         }, function(err){
@@ -556,8 +391,8 @@ angular.module('starter.controllers', [])
         })
     
     // Page transfers
-	$scope.goToEvents = function(){
-		$state.go('events')
+    $scope.goToEvent = function(){
+		$state.go('event', {eventID: $scope.eventID});
 	};
     
     $scope.openAPP = function() {
@@ -568,7 +403,6 @@ angular.module('starter.controllers', [])
 })
 
 .controller('accessTokenCtrl', function($scope, $ionicHistory, $state, $stateParams, $ionicLoading, $ionicModal, settings) {
-    console.log($stateParams.accessToken);
     
     // Show loading window
     $ionicLoading.show({
@@ -584,7 +418,6 @@ angular.module('starter.controllers', [])
     };
     
     $scope.goToOAuthConsole = function(){
-        //window.location = settings.OAuthConsole;
         window.open(settings.OAuthConsole, '_blank');
     }
     
@@ -639,28 +472,10 @@ angular.module('starter.controllers', [])
 	if(window.localStorage['access_token'] != null &&
 		window.localStorage['expires_at'] != null){
 		if(parseInt(window.localStorage['expires_at']) < Math.floor(Date.now() / 1000)){
-            // Access Token expired, get a new one.
-            /*$ionicLoading.show({
-                content: '正在將您導向至授權頁面',
-                animation: 'fade-in',
-                showBackdrop: true,
-                maxWidth: 200,
-                showDelay: 0
-            });
-			window.location = settings.OAuthEndPoint;*/
+            // Access Token expired
 		}else{
             // Confirmed valid accessToken in local storage.
 			$state.go('events');
 		}
-	}/*else{
-        // No accessToken in local storage, get a new one.
-        $ionicLoading.show({
-            content: '正在將您導向至授權頁面',
-            animation: 'fade-in',
-            showBackdrop: true,
-            maxWidth: 200,
-            showDelay: 0
-        });
-		window.location = settings.OAuthEndPoint;
-	}*/
+	}
 })
