@@ -5,7 +5,7 @@ angular.module('starter.services', [])
     self.OAuthRoot = 'https://oauth.apitest.cc.ncu.edu.tw/oauth/';
     
     self.clientID = '';
-    self.redirectURI = 'https://140.115.3.104/sign/';
+    self.redirectURI = '';
     self.scope = '';
     
     self.OAuthConsole = self.OAuthRoot + 'applications';
@@ -186,9 +186,10 @@ angular.module('starter.services', [])
             self.getEvents(accessToken, callback);
         }, function(err){
             console.error('ERR', err);
-            if(typeof(ERRcallback) === 'function'){
-                ERRcallback(err);
-            }
+            //if(typeof(ERRcallback) === 'function'){
+            //    ERRcallback(err);
+            //}
+            ERRcallback(err);
         });
     }
     

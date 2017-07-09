@@ -19,9 +19,15 @@ angular.module('starter.controllers', [])
                     $ionicLoading.hide();
                 }, 
                 function(err){
+                    $scope.$broadcast('scroll.infiniteScrollComplete');
                     $ionicLoading.hide();
-                    // show error message
+                    stateParams={};
+                    j = JSON.stringify(stateParams);
+                    document.cookie = "lastState=events;stateParams=" + j;
+                    window.location=settings.OAuthEndPoint;
             });
+        }else{
+             $scope.$broadcast('scroll.infiniteScrollComplete');
         }
     }
     
@@ -35,7 +41,11 @@ angular.module('starter.controllers', [])
                     $scope.events = signAPI.events;
                 }, 
                 function(err){
-                    // show error message
+                    $scope.$broadcast('scroll.refreshComplete');
+                    stateParams={};
+                    j = JSON.stringify(stateParams);
+                    document.cookie = "lastState=events;stateParams=" + j;
+                    window.location=settings.OAuthEndPoint;
             });
     }
     
@@ -180,7 +190,10 @@ angular.module('starter.controllers', [])
             $ionicLoading.hide();
         }, function(err){
             $ionicLoading.hide();
-            //show error message
+            stateParams={};
+            j = JSON.stringify(stateParams);
+            document.cookie = "lastState=add;stateParams=" + j;
+            window.location=settings.OAuthEndPoint;
         });
     };
     
@@ -214,6 +227,10 @@ angular.module('starter.controllers', [])
             $ionicLoading.hide();
         }, function(err){
             $ionicLoading.hide();
+            stateParams={eventID: $stateParams.eventID};
+            j = JSON.stringify(stateParams);
+            document.cookie = "lastState=event;stateParams=" + j;
+            window.location=settings.OAuthEndPoint;
         })
     }else{
         $scope.dateStarted = signAPI.formatDate($scope.evnt.dateStarted);
@@ -247,7 +264,10 @@ angular.module('starter.controllers', [])
             $ionicLoading.hide();
         }, function(err){
             $ionicLoading.hide();
-            //show error message
+            stateParams={eventID: $stateParams.eventID};
+            j = JSON.stringify(stateParams);
+            document.cookie = "lastState=event;stateParams=" + j;
+            window.location=settings.OAuthEndPoint;
         });
     }
     
@@ -264,7 +284,10 @@ angular.module('starter.controllers', [])
             $ionicLoading.hide();
         }, function(err){
             $ionicLoading.hide();
-            // show error message
+            stateParams={eventID: $stateParams.eventID};
+            j = JSON.stringify(stateParams);
+            document.cookie = "lastState=event;stateParams=" + j;
+            window.location=settings.OAuthEndPoint;
         })
     }
 
@@ -279,9 +302,13 @@ angular.module('starter.controllers', [])
     }
     
     $scope.goSignIn = function() {
-        callBack = settings.redirectURI + "#/appSignIn/" + $scope.evnt.id + "/{CODE}"
-        callBack = encodeURIComponent(callBack);
-		window.location = "http://zxing.appspot.com/scan?ret=" + callBack;
+        if(navigator.userAgent.match(/Android/i)){
+            callBack = settings.redirectURI + "#/appSignIn/" + $scope.evnt.id + "/{CODE}"
+            callBack = encodeURIComponent(callBack);
+            window.location = "https://zxing.appspot.com/scan?ret=" + callBack;
+        }else{
+            $state.go('signIn', {eventID: $scope.evnt.id});
+        }
 	};
     
     // Sign Record URL Modal
@@ -324,7 +351,10 @@ angular.module('starter.controllers', [])
                     $ionicLoading.hide();
             }, function(err){
                 $ionicLoading.hide();
-                // show error message
+                stateParams={eventID: $stateParams.eventID};
+                j = JSON.stringify(stateParams);
+                document.cookie = "lastState=check;stateParams=" + j;
+                window.location=settings.OAuthEndPoint;
         });
         
         }
@@ -348,6 +378,123 @@ angular.module('starter.controllers', [])
     	
 })
 
+.controller('signInCtrl', function($scope, $state, $ionicHistory, $ionicModal, $stateParams, $ionicLoading, signAPI, settings) {  
+    $scope.evnt = undefined;
+    for(i=0;i<signAPI.events.content.length;i++){
+        if(signAPI.events.content[i].id === $stateParams.eventID){
+            $scope.evnt = signAPI.events.content[i];
+        }
+    }
+    if (typeof $scope.evnt == 'undefined'){
+        $ionicLoading.show({
+                content: '正在取得活動資料',
+                animation: 'fade-in',
+                showBackdrop: true,
+                maxWidth: 200,
+                showDelay: 0
+            });
+        signAPI.getEvent(window.localStorage['access_token'], $stateParams.eventID, function(resp){
+            $scope.event = resp.data
+            $ionicLoading.hide();
+        }, function(err){
+            $ionicLoading.hide();
+            // show error message
+        })
+    }
+    $scope.eventID = $stateParams.eventID;
+    $scope.userID = $stateParams.userID;
+    $scope.createDate = "";
+    
+    
+    var resultCollector = Quagga.ResultCollector.create({
+        capture: true,
+        capacity: 20,
+        //blacklist: [{code: "2167361334", format: "i2of5"}],
+        filter: function(codeResult) {
+            //console.log(codeResult);
+            // only store results which match this constraint
+            // e.g.: codeResult
+            return true;
+        }
+    });
+    
+    Quagga.init({
+        inputStream : {
+            name : "Live",
+            type : "LiveStream",
+            constraints:{
+                width: 800,
+                height: 600,
+                facingMode: "environment"
+            },            
+            target: document.querySelector('#video'),
+            //singleChannel: true
+        },
+        decoder : {
+            readers : [
+						"code_128_reader", 
+						"code_39_reader"
+						],
+			multiple: true
+        },
+        locator: {
+                patchSize: "medium",
+                halfSample: true
+        },
+        locate: true
+        }, function(err) {
+            if (err) {
+                console.log(err);
+                return
+            }
+            Quagga.registerResultCollector(resultCollector);
+            Quagga.start();
+    });
+    
+    Quagga.onDetected(function(result) {
+        var code = result[0].codeResult.code;
+        $scope.userID = code.substring(0,code.length-1);
+        $scope.$apply();
+        console.log($scope.userID)
+    });
+    
+    $scope.Sign = function(){
+        if($scope.userID === "" || $scope.userID === undefined){
+            alert('簽到ID不可為空')
+            return;
+        }
+        $ionicLoading.show({
+                content: '正在簽到',
+                animation: 'fade-in',
+                showBackdrop: true,
+                maxWidth: 200,
+                showDelay: 0
+            });
+        signAPI.addSignIn(window.localStorage['access_token'], $stateParams.eventID,
+        $scope.userID, function(resp){
+            $scope.createDate = signAPI.formatDate(resp.data.dateCreated)
+            $ionicLoading.hide();
+            console.log($scope.createDate)
+        }, function(err){
+            $ionicLoading.hide();
+        });
+    };
+    
+    // Page transfers
+	$scope.goBack = function(){
+        Quagga.stop();
+		$state.go('event', {eventID: $scope.eventID});
+	};
+    
+    $scope.openAPP = function(eventID) {
+        callBack = settings.redirectURI + "#/appSignIn/" + $scope.eventID + "/{CODE}"
+        callBack = encodeURIComponent(callBack);
+		window.location = "http://zxing.appspot.com/scan?ret=" + callBack;
+        $scope.closeAPPModal();
+	};
+     
+})
+
 .controller('appSignInCtrl', function($scope, $state, $ionicHistory, $ionicModal, $stateParams, $ionicLoading, signAPI, settings) {
     $scope.title = "活動簽到"
     $scope.eventID = $stateParams.eventID;
@@ -369,6 +516,10 @@ angular.module('starter.controllers', [])
             $scope.title = "已簽到"
         }, function(err){
             $ionicLoading.hide();
+            stateParams={eventID: $stateParams.eventID, CODE: $stateParams.CODE};
+            j = JSON.stringify(stateParams);
+            document.cookie = "lastState=appSignIn;stateParams=" + j;
+            window.location=settings.OAuthEndPoint;
         });
     };
     
@@ -388,6 +539,10 @@ angular.module('starter.controllers', [])
             $scope.Sign()
         }, function(err){
             $ionicLoading.hide();
+            stateParams={eventID: $stateParams.eventID, CODE: $stateParams.CODE};
+            j = JSON.stringify(stateParams);
+            document.cookie = "lastState=appSignIn;stateParams=" + j;
+            window.location=settings.OAuthEndPoint;
         })
     
     // Page transfers
@@ -403,6 +558,16 @@ angular.module('starter.controllers', [])
 })
 
 .controller('accessTokenCtrl', function($scope, $ionicHistory, $state, $stateParams, $ionicLoading, $ionicModal, settings) {
+    
+    function getCookie(name) {
+        var value = "; " + document.cookie;
+        var parts = value.split("; " + name + "=");
+        if (parts.length == 2){
+            return parts.pop().split(";").shift();
+        } else{
+            return "";
+        }
+    }
     
     // Show loading window
     $ionicLoading.show({
@@ -456,7 +621,18 @@ angular.module('starter.controllers', [])
 				window.localStorage.setItem("expires_at", expires_at.toString());
 			}
             $ionicLoading.hide();
-            $state.go('events');
+            if(document.cookie === ""){
+                $state.go('events');
+            }else{
+                if (getCookie("stateParams") !== ''){
+                    $state.go(getCookie("lastState"), JSON.parse(getCookie("stateParams")) );
+                }else{
+                    $state.go(getCookie("lastState"));
+                }
+                
+            }
+            document.cookie = "";
+            
 		}catch(err){
             // Non Access Token string in URL fragment,
 			// show authorization error dialog, redirect user to re-authorize
