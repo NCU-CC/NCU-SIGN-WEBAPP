@@ -305,7 +305,7 @@ angular.module('starter.controllers', [])
         if(navigator.userAgent.match(/Android/i)){
             callBack = settings.redirectURI + "#/appSignIn/" + $scope.evnt.id + "/{CODE}"
             callBack = encodeURIComponent(callBack);
-            window.location = "https://zxing.appspot.com/scan?ret=" + callBack;
+            window.location = "http://zxing.appspot.com/scan?ret=" + callBack;
         }else{
             $state.go('signIn', {eventID: $scope.evnt.id});
         }
